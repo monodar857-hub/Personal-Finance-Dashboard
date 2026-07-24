@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OFG — Olskard Finance Group</title>
+  <meta name="description" content="Olskard Finance Group — Platform manajemen keuangan profesional untuk individu." />
+
+  <!-- ═══════════════════════════════════════════
+       FONTS — Syne (brand/heading) + DM Sans (body)
+  ════════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- ═══════════════════════════════════════════
+       TAILWIND CSS
+  ════════════════════════════════════════════ -->
+  <script>
+    window.tailwind = { config: {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            brand:  ['Playfair Display', 'serif'],
+            body:   ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            base:    { DEFAULT: '#0d0d14', 50: '#f5f5ff', 100: '#ebebff', 200: '#d0d0f0', 300: '#a8a8d8', 400: '#7070b0', 500: '#4a4a80' },
+            surface: { DEFAULT: '#13131e', card: '#1a1a2e', elevated: '#20203a', border: '#2a2a45' },
+            primary: { DEFAULT: '#c9a84c', light: '#e8c97a', dark: '#a07832', glow: 'rgba(201,168,76,0.3)' },
+            success: { DEFAULT: '#34d399', light: '#6ee7b7', dark: '#059669', glow: 'rgba(52,211,153,0.3)' },
+            danger:  { DEFAULT: '#f87171', light: '#fca5a5', dark: '#dc2626', glow: 'rgba(248,113,113,0.3)' },
+            warning: { DEFAULT: '#fbbf24', light: '#fcd34d', dark: '#d97706' },
+            text:    { primary: '#eeeef8', secondary: '#9898b8', muted: '#5a5a78', accent: '#c4b8fd' },
+          },
+          boxShadow: {
+            'card':    '0 4px 24px rgba(0,0,0,0.4)',
+            'glow-p':  '0 0 30px rgba(124,106,247,0.2)',
+            'glow-g':  '0 0 30px rgba(52,211,153,0.2)',
+            'glow-r':  '0 0 30px rgba(248,113,113,0.2)',
+          },
+          backgroundImage: {
+            'mesh-primary': 'radial-gradient(at 40% 20%, rgba(124,106,247,0.15) 0px, transparent 50%), radial-gradient(at 80% 0%, rgba(91,75,212,0.1) 0px, transparent 50%), radial-gradient(at 0% 50%, rgba(52,211,153,0.05) 0px, transparent 50%)',
+          }
+        },
+      },
+    }};
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ═══════════════════════════════════════════
+       CHART.JS
+  ════════════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- ═══════════════════════════════════════════
+       LUCIDE ICONS
+  ════════════════════════════════════════════ -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- ═══════════════════════════════════════════
+       FIREBASE SDK (v10 modular via CDN compat)
+  ════════════════════════════════════════════ -->
+  <script type="module">
+    // Firebase diinisialisasi di core/firebase.js
+    // Import dilakukan via ES module di sana
+  </script>
+
+  <!-- ═══════════════════════════════════════════
+       CUSTOM CSS
+  ════════════════════════════════════════════ -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+
+  <style>
+    /* ── Base ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --base:           #080c14;
+      --surface:        #0d1420;
+      --surface-card:   #111d2e;
+      --surface-el:     #162238;
+      --border:         #1e3048;
+      --primary:        #c9a84c;
+      --primary-light:  #e8c97a;
+      --primary-dark:   #a07832;
+      --success:        #34d399;
+      --danger:         #f87171;
+      --warning:        #fbbf24;
+      --text-primary:   #eeeef8;
+      --text-secondary: #9898b8;
+      --text-muted:     #5a5a78;
+      --sidebar-w:      260px;
+      --header-h:       64px;
+      --radius:         14px;
+      --transition:     0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--base);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+    }
+
+    /* ── Scrollbar ─────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    /* ── App Shell ─────────────────────────────── */
+    #app {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════════ */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition), width var(--transition);
+      z-index: 50;
+      overflow: hidden;
+    }
+
+    #sidebar.collapsed {
+      width: 72px;
+      min-width: 72px;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      min-height: var(--header-h);
+    }
+
+    .sidebar-logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #c9a84c, #a07832);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(124,106,247,0.4);
+    }
+
+    .sidebar-logo-text {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity var(--transition), width var(--transition);
+    }
+
+    .sidebar-logo-text span { color: var(--primary-light); }
+
+    #sidebar.collapsed .sidebar-logo-text { opacity: 0; width: 0; }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-section-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 8px 10px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity var(--transition);
+    }
+
+    #sidebar.collapsed .nav-section-label { opacity: 0; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all var(--transition);
+      white-space: nowrap;
+      position: relative;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--surface-el);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background: rgba(201,168,76,0.1);
+      color: var(--primary-light);
+      border-color: rgba(201,168,76,0.2);
+    }
+
+    .nav-item.active .nav-icon { color: var(--primary); }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      transition: color var(--transition);
+    }
+
+    .nav-label {
+      transition: opacity var(--transition), width var(--transition);
+      overflow: hidden;
+    }
+
+    #sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+
+    .sidebar-footer {
+      padding: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* Tooltip saat collapsed */
+    #sidebar.collapsed .nav-item { justify-content: center; padding: 10px; }
+    #sidebar.collapsed .nav-item[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: calc(100% + 12px);
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--surface-el);
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* ══════════════════════════════════════════════
+       MAIN CONTENT AREA
+    ═══════════════════════════════════════════════ */
+    #main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* ── Top Header ────────────────────────────── */
+    #topbar {
+      height: var(--header-h);
+      min-height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      gap: 16px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .topbar-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--surface-card);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .icon-btn:hover {
+      background: var(--surface-el);
+      color: var(--text-primary);
+      border-color: var(--primary);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #c9a84c, #a07832);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: white;
+      cursor: pointer;
+      border: 2px solid rgba(124,106,247,0.3);
+      flex-shrink: 0;
+    }
+
+    /* ── Page Content ──────────────────────────── */
+    #page-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--base);
+      background-image: var(--mesh-bg);
+      padding: 28px;
+      position: relative;
+    }
+
+    --mesh-bg: radial-gradient(at 40% 20%, rgba(124,106,247,0.06) 0px, transparent 50%),
+               radial-gradient(at 80% 80%, rgba(52,211,153,0.04) 0px, transparent 50%);
+
+    /* ── Page Transitions ──────────────────────── */
+    .page-view {
+      display: none;
+      animation: fadeSlideIn 0.28s ease forwards;
+    }
+
+    .page-view.active { display: block; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ══════════════════════════════════════════════
+       LOGIN PAGE
+    ═══════════════════════════════════════════════ */
+    #login-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--base);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      background-image:
+        radial-gradient(at 20% 30%, rgba(201,168,76,0.12) 0px, transparent 50%),
+        radial-gradient(at 80% 70%, rgba(52,211,153,0.05) 0px, transparent 50%),
+        radial-gradient(at 50% 0%, rgba(14,30,60,0.8) 0px, transparent 60%);
+    }
+
+    #login-screen.visible { display: flex; }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 44px 40px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.12);
+      animation: loginEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes loginEnter {
+      from { opacity: 0; transform: scale(0.95) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .login-brand-icon {
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, #c9a84c, #a07832);
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(124,106,247,0.45);
+    }
+
+    .login-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+    }
+
+    .login-title span { color: var(--primary-light); }
+    .login-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .login-heading {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .login-desc {
+      font-size: 0.83rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
+
+    /* ── Form Elements ─────────────────────────── */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+      letter-spacing: 0.01em;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface-el);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.9rem;
+      transition: all var(--transition);
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: rgba(201,168,76,0.05);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+
+    .form-input::placeholder { color: var(--text-muted); }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color var(--transition);
+    }
+
+    .input-icon:hover { color: var(--text-secondary); }
+
+    .input-wrapper .form-input { padding-right: 40px; }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #c9a84c, #a07832);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(201,168,76,0.5);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .login-divider span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-el);
+      color: var(--text-primary);
+      border-color: var(--primary);
+    }
+
+    /* ── Alert / Error ─────────────────────────── */
+    .alert {
+      padding: 10px 14px;
+      border-radius: 9px;
+      font-size: 0.82rem;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert.visible { display: flex; }
+    .alert-error { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
+    .alert-success { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: #6ee7b7; }
+
+    /* ══════════════════════════════════════════════
+       CARD COMPONENTS
+    ═══════════════════════════════════════════════ */
+    .card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      transition: border-color var(--transition);
+    }
+
+    .card:hover { border-color: rgba(124,106,247,0.2); }
+
+    .card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+    }
+
+    .stat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 99px;
+      margin-top: 6px;
+    }
+
+    .badge-up   { background: rgba(52,211,153,0.15);  color: var(--success); }
+    .badge-down { background: rgba(248,113,113,0.15); color: var(--danger);  }
+    .badge-neu  { background: rgba(152,152,184,0.15); color: var(--text-secondary); }
+
+    /* ── Stat Icon ─────────────────────────────── */
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .si-primary { background: rgba(124,106,247,0.15); color: var(--primary); }
+    .si-success { background: rgba(52,211,153,0.15);  color: var(--success); }
+    .si-danger  { background: rgba(248,113,113,0.15); color: var(--danger);  }
+    .si-warning { background: rgba(251,191,36,0.15);  color: var(--warning); }
+
+    /* ══════════════════════════════════════════════
+       TABLE
+    ═══════════════════════════════════════════════ */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      background: var(--surface-el);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 11px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(42,42,69,0.6);
+      transition: background var(--transition);
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(124,106,247,0.04); }
+
+    tbody td {
+      padding: 12px 16px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    /* ══════════════════════════════════════════════
+       BADGE / CHIP
+    ═══════════════════════════════════════════════ */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .chip-primary { background: rgba(124,106,247,0.15); color: var(--primary-light); }
+    .chip-success { background: rgba(52,211,153,0.15);  color: var(--success);       }
+    .chip-danger  { background: rgba(248,113,113,0.15); color: var(--danger);        }
+    .chip-warning { background: rgba(251,191,36,0.15);  color: var(--warning);       }
+    .chip-neutral { background: rgba(152,152,184,0.1);  color: var(--text-secondary);}
+
+    /* ══════════════════════════════════════════════
+       ACTION BUTTONS (table)
+    ═══════════════════════════════════════════════ */
+    .action-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      color: var(--text-muted);
+    }
+
+    .action-btn:hover { background: var(--surface-el); color: var(--text-primary); }
+    .action-btn.edit:hover  { border-color: var(--primary); color: var(--primary); }
+    .action-btn.del:hover   { border-color: var(--danger);  color: var(--danger);  }
+
+    /* ══════════════════════════════════════════════
+       MODAL
+    ═══════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.visible { display: flex; }
+
+    .modal {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+      animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.94) translateY(12px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .modal-close {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 7px;
+      padding: 3px;
+      transition: all var(--transition);
+    }
+
+    .modal-close:hover { color: var(--text-primary); background: var(--surface-el); }
+
+    /* ══════════════════════════════════════════════
+       PROGRESS BAR
+    ═══════════════════════════════════════════════ */
+    .progress-track {
+      height: 7px;
+      background: var(--surface-el);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      transition: width 0.6s ease;
+    }
+
+    .progress-fill.success { background: linear-gradient(90deg, var(--success), #6ee7b7); }
+    .progress-fill.danger  { background: linear-gradient(90deg, var(--danger), #fca5a5); }
+    .progress-fill.warning { background: linear-gradient(90deg, var(--warning), #fcd34d); }
+
+    /* ══════════════════════════════════════════════
+       TOGGLE (Dark Mode)
+    ═══════════════════════════════════════════════ */
+    .toggle {
+      width: 40px;
+      height: 22px;
+      background: var(--border);
+      border-radius: 99px;
+      position: relative;
+      cursor: pointer;
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+
+    .toggle.on { background: var(--primary); }
+
+    .toggle::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform var(--transition);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+
+    .toggle.on::after { transform: translateX(18px); }
+
+    /* ══════════════════════════════════════════════
+       TOAST NOTIFICATION
+    ═══════════════════════════════════════════════ */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--surface-el);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s ease forwards;
+      pointer-events: all;
+      min-width: 260px;
+      max-width: 360px;
+    }
+
+    .toast.removing { animation: toastOut 0.3s ease forwards; }
+
+    @keyframes toastIn  { from { opacity:0; transform: translateY(12px) scale(0.95); } to { opacity:1; transform: none; } }
+    @keyframes toastOut { from { opacity:1; transform: none; } to { opacity:0; transform: translateY(12px) scale(0.95); } }
+
+    .toast-success { border-color: rgba(52,211,153,0.3);  }
+    .toast-error   { border-color: rgba(248,113,113,0.3); }
+    .toast-info    { border-color: rgba(201,168,76,0.3); }
+
+    /* ══════════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════════ */
+    .empty-state {
+      text-align: center;
+      padding: 52px 24px;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg { margin: 0 auto 14px; opacity: 0.35; }
+
+    .empty-state h3 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p { font-size: 0.82rem; }
+
+    /* ══════════════════════════════════════════════
+       LIGHT THEME OVERRIDES
+    ═══════════════════════════════════════════════ */
+    html[data-theme="light"] {
+      --base:           #f0f2f5;
+      --surface:        #ffffff;
+      --surface-card:   #ffffff;
+      --surface-el:     #eef1f5;
+      --border:         #dce3ed;
+      --text-primary:   #0d1420;
+      --text-secondary: #3d5068;
+      --text-muted:     #7a94ae;
+    }
+
+    html[data-theme="light"] body { background-color: var(--base); }
+
+    /* ══════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed;
+        left: 0; top: 0; bottom: 0;
+        transform: translateX(-100%);
+        width: var(--sidebar-w) !important;
+        min-width: var(--sidebar-w) !important;
+      }
+
+      #sidebar.mobile-open { transform: translateX(0); }
+
+      #sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 49;
+      }
+
+      #sidebar.mobile-open ~ #sidebar-overlay { display: block; }
+
+      #page-content { padding: 18px 16px; }
+    }
+
+    /* ══════════════════════════════════════════════
+       LOADING SPINNER
+    ═══════════════════════════════════════════════ */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Mobile rendering fix — cegah GPU glitch ── */
+    /* transition:all pada mobile bisa menyebabkan     */
+    /* artifact visual. Batasi hanya background saja.  */
+    @media (max-width: 768px) {
+      button { -webkit-tap-highlight-color: transparent; }
+    }
+
+    /* ── Loading Screen ────────────────────────── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--base);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity 0.4s ease;
+    }
+
+    #loading-screen.hidden { opacity: 0; pointer-events: none; }
+
+    .loading-logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #c9a84c, #a07832);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(124,106,247,0.5);
+      animation: pulse 1.5s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 8px 30px rgba(201,168,76,0.5); }
+      50%       { box-shadow: 0 8px 50px rgba(201,168,76,0.8); }
+    }
+
+    .loading-text {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+
+<body class="dark">
+
+<!-- ════════════════════════════════════════════════
+     LOADING SCREEN
+═════════════════════════════════════════════════ -->
+<div id="loading-screen">
+  <div class="loading-logo">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  </div>
+  <span class="loading-text">OLSKARD FINANCE GROUP</span>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     LOGIN SCREEN
+═════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+
+    <!-- Brand -->
+    <div class="login-brand" style="flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:28px;">
+      <!-- Logo row -->
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="login-brand-icon" style="background:linear-gradient(135deg,#c9a84c,#a07832);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;
+                      color:var(--text-primary);letter-spacing:-0.01em;line-height:1.1;">
+            Olskard Finance
+          </div>
+          <div style="font-size:0.68rem;color:var(--primary);font-weight:600;
+                      letter-spacing:0.18em;text-transform:uppercase;margin-top:2px;">
+            Group &nbsp;—&nbsp; Est. 2024
+          </div>
+        </div>
+      </div>
+      <!-- Divider -->
+      <div style="width:100%;height:1px;background:linear-gradient(90deg,var(--primary),transparent);
+                  opacity:0.4;"></div>
+      <!-- Welcome text -->
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;
+                    color:var(--text-primary);letter-spacing:-0.02em;margin-bottom:4px;">
+          Selamat Datang
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-muted);line-height:1.5;">
+          Masuk ke platform manajemen keuangan<br>profesional Anda.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Switch: Login / Register -->
+    <div style="display:flex; gap:4px; background:var(--surface-el); border-radius:11px; padding:4px; margin-bottom:26px;">
+      <button id="tab-login" onclick="switchTab('login')"
+        style="flex:1; padding:8px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:white; box-shadow:0 2px 8px rgba(124,106,247,0.3);">
+        Masuk
+      </button>
+      <button id="tab-register" onclick="switchTab('register')"
+        style="flex:1; padding:8px; border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; background:transparent; color:var(--text-secondary);">
+        Daftar
+      </button>
+    </div>
+
+    <!-- Alert -->
+    <div id="auth-alert" class="alert alert-error">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="auth-alert-msg">Terjadi kesalahan.</span>
+    </div>
+
+    <!-- Login Form -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-wrapper">
+          <input type="email" id="login-email" class="form-input" placeholder="kamu@email.com" autocomplete="email" />
+          <span class="input-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          </span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" />
+          <span class="input-icon" onclick="togglePasswordVisibility('login-password', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="handleLogin()" id="btn-login">
+        <span>Masuk ke Dashboard</span>
+      </button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="form-register" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap</label>
+        <input type="text" id="reg-name" class="form-input" placeholder="Nama kamu" autocomplete="name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="reg-email" class="form-input" placeholder="kamu@email.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrapper">
+          <input type="password" id="reg-password" class="form-input" placeholder="Min. 6 karakter" autocomplete="new-password" />
+          <span class="input-icon" onclick="togglePasswordVisibility('reg-password', this)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </span>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="handleRegister()" id="btn-register">
+        <span>Buat Akun</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SIDEBAR MOBILE OVERLAY
+═════════════════════════════════════════════════ -->
+<div id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- ════════════════════════════════════════════════
+     MAIN APP SHELL
+═════════════════════════════════════════════════ -->
+<div id="app" style="display:none;">
+
+  <!-- ── Sidebar ──────────────────────────────── -->
+  <nav id="sidebar">
+
+    <!-- Logo -->
+    <a class="sidebar-logo" href="#" onclick="navigateTo('dashboard'); return false;">
+      <div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#c9a84c,#a07832);box-shadow:0 4px 14px rgba(201,168,76,0.35);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-text">OFG<span style="font-weight:300;font-size:0.7em;margin-left:6px;letter-spacing:0.05em;opacity:0.7;">GROUP</span></span>
+    </a>
+
+    <!-- Navigation -->
+    <div class="sidebar-nav">
+
+      <span class="nav-section-label">Utama</span>
+
+      <a class="nav-item active" data-page="dashboard" data-tooltip="Dashboard" onclick="navigateTo('dashboard'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a class="nav-item" data-page="income" data-tooltip="Income" onclick="navigateTo('income'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        <span class="nav-label">Pemasukan</span>
+      </a>
+
+      <a class="nav-item" data-page="expense" data-tooltip="Pengeluaran" onclick="navigateTo('expense'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+          <path d="M13 5v2M13 17v2M13 11v2"/>
+        </svg>
+        <span class="nav-label">Pengeluaran</span>
+      </a>
+
+      <span class="nav-section-label">Keuangan</span>
+
+      <a class="nav-item" data-page="savings" data-tooltip="Tabungan" onclick="navigateTo('savings'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
+          <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>
+        </svg>
+        <span class="nav-label">Tabungan</span>
+      </a>
+
+      <a class="nav-item" data-page="emergency" data-tooltip="Dana Darurat" onclick="navigateTo('emergency'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="nav-label">Dana Darurat</span>
+      </a>
+
+      <a class="nav-item" data-page="assets" data-tooltip="Aset" onclick="navigateTo('assets'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span class="nav-label">Aset</span>
+      </a>
+
+      <span class="nav-section-label">Perencanaan</span>
+
+      <a class="nav-item" data-page="allocation" data-tooltip="Alokasi Dana" onclick="navigateTo('allocation'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        <span class="nav-label">Alokasi Dana</span>
+      </a>
+
+      <a class="nav-item" data-page="ewallet" data-tooltip="E-Wallet" onclick="navigateTo('ewallet'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="3" ry="3"/><line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        <span class="nav-label">E-Wallet</span>
+      </a>
+
+      <span class="nav-section-label">Insight</span>
+
+      <a class="nav-item" data-page="analytics" data-tooltip="Analitik" onclick="navigateTo('analytics'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
+        </svg>
+        <span class="nav-label">Analitik</span>
+      </a>
+
+      <a class="nav-item" data-page="todo" data-tooltip="To-Do" onclick="navigateTo('todo'); return false;" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <span class="nav-label">To-Do List</span>
+      </a>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <!-- Dark Mode Toggle -->
+      <div class="nav-item" onclick="toggleTheme()" data-tooltip="Tema">
+        <svg class="nav-icon" id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span class="nav-label">Dark Mode</span>
+        <div id="theme-toggle" class="toggle on" style="margin-left:auto;"></div>
+      </div>
+
+      <!-- Collapse Sidebar -->
+      <div class="nav-item" onclick="toggleSidebar()" data-tooltip="Perkecil" id="sidebar-collapse-btn">
+        <svg class="nav-icon" id="collapse-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>
+        </svg>
+        <span class="nav-label">Perkecil</span>
+      </div>
+
+      <!-- Logout -->
+      <div class="nav-item" onclick="handleLogout()" data-tooltip="Keluar" style="color: var(--danger);">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="nav-label">Keluar</span>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- ── Main Wrapper ──────────────────────────── -->
+  <div id="main-wrapper">
+
+    <!-- Topbar -->
+    <header id="topbar">
+      <div class="topbar-left">
+        <!-- Hamburger (mobile) -->
+        <button class="icon-btn" id="hamburger-btn" onclick="openMobileSidebar()" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title" id="page-title">Dashboard</div>
+          <div class="topbar-subtitle" id="page-date"></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <!-- Search -->
+        <button class="icon-btn" title="Cari">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+        <!-- Notif -->
+        <button class="icon-btn" title="Notifikasi" id="notif-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <!-- User Avatar -->
+        <div class="user-avatar" id="user-avatar" title="Profil">U</div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main id="page-content">
+
+      <!-- ── Halaman: Dashboard ──────────────── -->
+      <div class="page-view active" id="page-dashboard">
+        <!-- Diisi oleh pages/dashboard.js -->
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <h3>Memuat Dashboard...</h3>
+          <p>Menghubungkan ke Firebase</p>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Pemasukan ──────────────── -->
+      <div class="page-view" id="page-income">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <h3>Memuat Pemasukan...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Pengeluaran ────────────── -->
+      <div class="page-view" id="page-expense">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>
+          <h3>Memuat Pengeluaran...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Tabungan ───────────────── -->
+      <div class="page-view" id="page-savings">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/></svg>
+          <h3>Memuat Tabungan...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Dana Darurat ───────────── -->
+      <div class="page-view" id="page-emergency">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <h3>Memuat Dana Darurat...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Aset ───────────────────── -->
+      <div class="page-view" id="page-assets">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <h3>Memuat Aset...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Analitik ───────────────── -->
+      <div class="page-view" id="page-analytics">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <h3>Memuat Analitik...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: Alokasi Dana ──────────────── -->
+      <div class="page-view" id="page-allocation">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <h3>Memuat Alokasi Dana...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: E-Wallet ──────────────────── -->
+      <div class="page-view" id="page-ewallet">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="3" ry="3"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          <h3>Memuat E-Wallet...</h3>
+        </div>
+      </div>
+
+      <!-- ── Halaman: To-Do List ─────────────── -->
+      <div class="page-view" id="page-todo">
+        <div class="empty-state" style="padding-top: 80px;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <h3>Memuat To-Do List...</h3>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /main-wrapper -->
+
+</div><!-- /app -->
+
+<!-- ════════════════════════════════════════════════
+     MODAL GLOBAL (dipakai semua halaman)
+═════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="global-modal">
+  <div class="modal" id="global-modal-body">
+    <!-- Diisi secara dinamis oleh pages/*.js -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     TOAST CONTAINER
+═════════════════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ════════════════════════════════════════════════
+     CORE SCRIPTS
+═════════════════════════════════════════════════ -->
+<script type="module" src="core/firebase.js"></script>
+<script type="module" src="core/auth.js"></script>
+<script type="module" src="core/router.js"></script>
+<script type="module" src="core/storage.js"></script>
+
+<!-- ════════════════════════════════════════════════
+     INLINE UTILITY SCRIPTS (non-module, UI helpers)
+═════════════════════════════════════════════════ -->
+<script>
+  /* ── Sidebar Collapse ──────────────────────── */
+  let sidebarCollapsed = false;
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const icon    = document.getElementById('collapse-icon');
+    sidebarCollapsed = !sidebarCollapsed;
+    sidebar.classList.toggle('collapsed', sidebarCollapsed);
+
+    if (sidebarCollapsed) {
+      icon.innerHTML = `<path d="m13 17 5-5-5-5"/><path d="m6 17 5-5-5-5"/>`;
+    } else {
+      icon.innerHTML = `<path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/>`;
+    }
+  }
+
+  function openMobileSidebar() {
+    document.getElementById('sidebar').classList.add('mobile-open');
+    document.getElementById('sidebar-overlay').style.display = 'block';
+  }
+
+  function closeMobileSidebar() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('sidebar-overlay').style.display = 'none';
+  }
+
+  /* ── Responsive: Hamburger ─────────────────── */
+  function checkMobile() {
+    const isMobile = window.innerWidth <= 768;
+    document.getElementById('hamburger-btn').style.display = isMobile ? 'flex' : 'none';
+  }
+  window.addEventListener('resize', checkMobile);
+  checkMobile();
+
+  /* ── Theme Toggle ──────────────────────────── */
+  let isDark = true;
+
+  function toggleTheme() {
+    isDark = !isDark;
+    const html    = document.documentElement;
+    const icon    = document.getElementById('theme-icon');
+    const toggle  = document.getElementById('theme-toggle');
+
+    html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    toggle.classList.toggle('on', isDark);
+
+    if (isDark) {
+      icon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+    } else {
+      icon.innerHTML = `<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>`;
+    }
+
+    localStorage.setItem('ofg-theme', isDark ? 'dark' : 'light');
+  }
+
+  /* Load saved theme */
+  (function() {
+    const saved = localStorage.getItem('ofg-theme');
+    if (saved === 'light') {
+      isDark = false;
+      document.documentElement.setAttribute('data-theme', 'light');
+      const toggle = document.getElementById('theme-toggle');
+      if (toggle) toggle.classList.remove('on');
+    }
+  })();
+
+  /* ── Navigation ────────────────────────────── */
+  const pageTitles = {
+    dashboard : 'Dashboard',
+    income    : 'Pemasukan',
+    expense   : 'Pengeluaran',
+    savings   : 'Tabungan',
+    emergency : 'Dana Darurat',
+    assets    : 'Aset',
+    analytics : 'Analitik',
+    todo       : 'To-Do List',
+    allocation : 'Alokasi Dana',
+    ewallet    : 'E-Wallet',
+  };
+
+  function navigateTo(page) {
+    /* Update nav active state */
+    document.querySelectorAll('.nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.page === page);
+    });
+
+    /* Update page views */
+    document.querySelectorAll('.page-view').forEach(el => {
+      el.classList.toggle('active', el.id === 'page-' + page);
+    });
+
+    /* Update topbar title */
+    document.getElementById('page-title').textContent = pageTitles[page] || page;
+
+    /* ── Scroll ke atas saat pindah halaman ── */
+    const pageContent = document.getElementById('page-content');
+    if (pageContent) pageContent.scrollTo({ top: 0, behavior: 'instant' });
+
+    /* Close mobile sidebar */
+    closeMobileSidebar();
+
+    /* Dispatch event so page modules can initialize */
+    window.dispatchEvent(new CustomEvent('navigate', { detail: { page } }));
+  }
+
+  /* ── Date in Topbar ────────────────────────── */
+  function updateDate() {
+    const now = new Date();
+    const opts = { weekday:'long', day:'numeric', month:'long', year:'numeric' };
+    document.getElementById('page-date').textContent =
+      now.toLocaleDateString('id-ID', opts);
+  }
+  updateDate();
+
+  /* ── Toast Notification ────────────────────── */
+  function showToast(message, type = 'info', duration = 3500) {
+    const icons = {
+      success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>`,
+      error:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)"  stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+      info:    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+    };
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `${icons[type] || icons.info}<span>${message}</span>`;
+    document.getElementById('toast-container').appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  /* ── Modal Helpers ─────────────────────────── */
+  function openModal(html) {
+    document.getElementById('global-modal-body').innerHTML = html;
+    document.getElementById('global-modal').classList.add('visible');
+  }
+
+  function closeModal() {
+    document.getElementById('global-modal').classList.remove('visible');
+  }
+
+  /* Close modal on overlay click */
+  document.getElementById('global-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ── Password Visibility Toggle ────────────── */
+  function togglePasswordVisibility(inputId, iconEl) {
+    const input = document.getElementById(inputId);
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    iconEl.innerHTML = isPassword
+      ? `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+      : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  }
+
+  /* ── Auth Form Tab Switch ───────────────────── */
+  function switchTab(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('form-login').style.display    = isLogin ? 'block' : 'none';
+    document.getElementById('form-register').style.display = isLogin ? 'none'  : 'block';
+    document.getElementById('auth-alert').classList.remove('visible');
+
+    const btnL = document.getElementById('tab-login');
+    const btnR = document.getElementById('tab-register');
+
+    if (isLogin) {
+      btnL.style.cssText = 'flex:1;padding:8px;border:none;border-radius:8px;font-family:DM Sans,sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#c9a84c,#a07832);color:white;box-shadow:0 2px 8px rgba(201,168,76,.3)';
+      btnR.style.cssText = 'flex:1;padding:8px;border:none;border-radius:8px;font-family:DM Sans,sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text-secondary)';
+    } else {
+      btnR.style.cssText = 'flex:1;padding:8px;border:none;border-radius:8px;font-family:DM Sans,sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#c9a84c,#a07832);color:white;box-shadow:0 2px 8px rgba(201,168,76,.3)';
+      btnL.style.cssText = 'flex:1;padding:8px;border:none;border-radius:8px;font-family:DM Sans,sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;background:transparent;color:var(--text-secondary)';
+    }
+  }
+
+  /* ── Show/Hide Auth Error ───────────────────── */
+  function showAuthError(msg) {
+    const el = document.getElementById('auth-alert');
+    document.getElementById('auth-alert-msg').textContent = msg;
+    el.className = 'alert alert-error visible';
+  }
+
+  function showAuthSuccess(msg) {
+    const el = document.getElementById('auth-alert');
+    document.getElementById('auth-alert-msg').textContent = msg;
+    el.className = 'alert alert-success visible';
+  }
+
+  /* ── Rupiah Formatter ──────────────────────── */
+  function formatRupiah(amount) {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency', currency: 'IDR',
+      minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(amount);
+  }
+
+  /* ── Loading Screen ────────────────────────── */
+  function hideLoadingScreen() {
+    const el = document.getElementById('loading-screen');
+    el.classList.add('hidden');
+    setTimeout(() => el.remove(), 400);
+  }
+
+  /* ── Show App / Login ──────────────────────── */
+  function showApp(user) {
+    document.getElementById('login-screen').classList.remove('visible');
+    document.getElementById('app').style.display = 'flex';
+
+    /* Set avatar initials */
+    const name    = user.displayName || user.email || 'U';
+    const initial = name.charAt(0).toUpperCase();
+    document.getElementById('user-avatar').textContent = initial;
+    document.getElementById('user-avatar').title = name;
+  }
+
+  function showLogin() {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').classList.add('visible');
+  }
+
+  /* ── Stubs (akan di-override oleh auth.js) ─── */
+  window.handleLogin    = function() { console.warn('auth.js belum dimuat'); };
+  window.handleRegister = function() { console.warn('auth.js belum dimuat'); };
+  window.handleLogout   = function() { console.warn('auth.js belum dimuat'); };
+
+  /* ── Expose globals untuk modules ─────────── */
+  window.navigateTo    = navigateTo;
+  window.showToast     = showToast;
+  window.openModal     = openModal;
+  window.closeModal    = closeModal;
+  window.formatRupiah  = formatRupiah;
+  window.showApp       = showApp;
+  window.showLogin     = showLogin;
+  window.showAuthError = showAuthError;
+  window.showAuthSuccess = showAuthSuccess;
+  window.hideLoadingScreen = hideLoadingScreen;
+
+  /* Enter key on login form */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const loginVisible   = document.getElementById('form-login').style.display !== 'none';
+      const loginScreenOn  = document.getElementById('login-screen').classList.contains('visible');
+      if (loginScreenOn && loginVisible) handleLogin();
+    }
+  });
+</script>
+
+</body>
+</html>
